@@ -12,7 +12,9 @@ const RecipeCard = ({ recipe, bg = "", badge = "" }) => {
 			const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 			return favorites.some((fav) => fav.label === recipe.label);
 		} catch {
-			return false;
+			const favorites = localStorage.getItem("favorites");
+			if (!favorites) return false;
+			return JSON.parse(favorites).some((fav) => fav.label === recipe.label);
 		}
 	});
 

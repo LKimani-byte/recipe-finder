@@ -33,10 +33,7 @@ const HomePage = () => {
 
 	const handleSearchRecipe = (e) => {
 		e.preventDefault();
-		const searchQuery = e.target[0].value.trim();
-		if (searchQuery) {
-			fetchRecipes(searchQuery);
-		}
+		fetchRecipes(e.target[0].value);
 	};
 
 	return (
