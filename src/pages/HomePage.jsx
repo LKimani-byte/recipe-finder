@@ -3,25 +3,42 @@ import RecipeCard from "../components/RecipeCard";
 import { useEffect, useState } from "react";
 import { getRandomColor } from "../lib/utils";
 
+const APP_ID = import.meta.env.VITE_APP_ID;
+const APP_KEY = import.meta.env.VITE_APP_KEY;
+
 const HomePage = () => {
 	const [recipes, setRecipes] = useState([]);
 	const [loading, setLoading] = useState(true);
 
 	const fetchRecipes = async (searchQuery) => {
+		if (!APP_ID || !APP_KEY) {
+			console.error("Missing API credentials. Please check your environment variables.");
+			setLoading(false);
+			return;
+		}
+	
+		if (!searchQuery.trim()) {
+			console.warn("Search query is empty. Please provide a valid query.");
+			setLoading(false);
+			return;
+		}
+	
 		setLoading(true);
 		setRecipes([]);
 		try {
 			const res = await fetch(
-				`https://www.themealdb.com/api/json/v1/1/search.php?s=${searchQuery}`
+				`https://api.edamam.com/api/recipes/v2?app_id=${APP_ID}&app_key=${APP_KEY}&q=${searchQuery}&type=public`
 			);
-			const data = await res.json();
-			if (data.meals) {
-				setRecipes(data.meals);
-			} else {
-				setRecipes([]);
+	
+			if (!res.ok) {
+				throw new Error(`API error: ${res.status} ${res.statusText}`);
 			}
+	
+			const data = await res.json();
+			setRecipes(data.hits);
+			console.log(data.hits);
 		} catch (error) {
-			console.error(error.message);
+			console.error("Failed to fetch recipes:", error.message);
 		} finally {
 			setLoading(false);
 		}
@@ -55,7 +72,7 @@ const HomePage = () => {
 
 				<div className='grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3'>
 					{!loading &&
-						recipes.map((recipe, index) => (
+						recipes.map(({ recipe }, index) => (
 							<RecipeCard key={index} recipe={recipe} {...getRandomColor()} />
 						))}
 
