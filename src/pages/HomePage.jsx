@@ -3,9 +3,6 @@ import RecipeCard from "../components/RecipeCard";
 import { useEffect, useState } from "react";
 import { getRandomColor } from "../lib/utils";
 
-const APP_ID = import.meta.env.VITE_APP_ID;
-const APP_KEY = import.meta.env.VITE_APP_KEY;
-
 const HomePage = () => {
 	const [recipes, setRecipes] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -15,13 +12,16 @@ const HomePage = () => {
 		setRecipes([]);
 		try {
 			const res = await fetch(
-				`https://api.edamam.com/api/recipes/v2/?app_id=${APP_ID}&app_key=${APP_KEY}&q=${searchQuery}&type=public`
+				`https://www.themealdb.com/api/json/v1/1/search.php?s=${searchQuery}`
 			);
 			const data = await res.json();
-			setRecipes(data.hits);
-			console.log(data.hits);
+			if (data.meals) {
+				setRecipes(data.meals);
+			} else {
+				setRecipes([]);
+			}
 		} catch (error) {
-			console.log(error.message);
+			console.error(error.message);
 		} finally {
 			setLoading(false);
 		}
@@ -33,7 +33,10 @@ const HomePage = () => {
 
 	const handleSearchRecipe = (e) => {
 		e.preventDefault();
-		fetchRecipes(e.target[0].value);
+		const searchQuery = e.target[0].value.trim();
+		if (searchQuery) {
+			fetchRecipes(searchQuery);
+		}
 	};
 
 	return (
@@ -55,7 +58,7 @@ const HomePage = () => {
 
 				<div className='grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3'>
 					{!loading &&
-						recipes.map(({ recipe }, index) => (
+						recipes.map((recipe, index) => (
 							<RecipeCard key={index} recipe={recipe} {...getRandomColor()} />
 						))}
 
